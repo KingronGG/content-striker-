@@ -1,5 +1,11 @@
+import { useRef, useState } from "react";
 import { motion } from "motion/react";
 import { Play } from "lucide-react";
+
+const showreelVideoUrl = new URL(
+  "../public/vid/30second_version.mp4",
+  import.meta.url,
+).href;
 
 const thumbnails = [
   "https://lh3.googleusercontent.com/aida/ADBb0uh8qPjNP0ATFx3XbD3okYBZfRuwnc95ecePa3d8RZTaxrZFlG4Fo1LWuQQpgTZcaes4HCRryVzTOmW2x90nUwTTXxLxfT9HazV_ElgNLZQfIZkCU-Ub_GNGqa9c5t2d4TOMZ8YGJUjrv-vFUQYmCPBFLqCG2JqsziF4932JeihHZ56OXkoRNHYfyL4WLqPfMB4S5J1sxtOyvRJzfmKsb8OK5aF_gwbfXu0SUvxyGy7hWyj8nWcHq_pgrmX_D17hHDiDbmlpRpvK",
@@ -15,6 +21,22 @@ const thumbnails = [
 ];
 
 export default function Showreel() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [playing, setPlaying] = useState(false);
+
+  const togglePlay = () => {
+    const el = videoRef.current;
+    if (!el) return;
+    if (el.paused) {
+      el.play()
+        .then(() => setPlaying(true))
+        .catch(() => setPlaying(false));
+    } else {
+      el.pause();
+      setPlaying(false);
+    }
+  };
+
   return (
     <section id="showreel" className="py-24 bg-white border-y border-border">
       <div className="max-w-7xl mx-auto px-8">
@@ -28,14 +50,33 @@ export default function Showreel() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           className="relative group aspect-video w-full overflow-hidden bg-surface rounded-sm border border-border cursor-pointer shadow-sm"
+          onClick={togglePlay}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              togglePlay();
+            }
+          }}
+          role="button"
+          tabIndex={0}
+          aria-label={playing ? "쇼릴 일시정지" : "쇼릴 재생"}
         >
-          <img 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuBkoVqDQmX17R7BjQ7x5G53iAxgp3jeycHy3xqFVZgPw_Oo1uddw2l5bR0pLrsYgFCMa1PtKeivwiTHQ4esydk5Hg8qb1ztJnB-6VAcs8qHEsGcwX4NEpp3cdh2XQOV2zuwa5CyAyo4Yih8Xm2uQxqaGI3A3ROEQ84mqA91GERXB9q8M4_pxGettj-lgXyZjxYIAYIgjwzoAlwKiVx6tL0RxlNRWiSiQTjNiXm0DeqbOzo6zGpSZilq78OqLPHTJDGmPsApkiFJ7g" 
-            alt="Showreel Main Thumbnail" 
-            className="w-full h-full object-cover grayscale brightness-110 contrast-75 transition-all duration-700 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105"
-            referrerPolicy="no-referrer"
+          <video
+            ref={videoRef}
+            src={showreelVideoUrl}
+            className="w-full h-full object-cover grayscale brightness-110 contrast-75 transition-all duration-700 group-hover:grayscale-0 group-hover:brightness-100 group-hover:scale-105 pointer-events-none"
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            onPlay={() => setPlaying(true)}
+            onPause={() => setPlaying(false)}
           />
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/10 group-hover:bg-transparent transition-all">
+          <div
+            className={`absolute inset-0 flex flex-col items-center justify-center bg-white/10 transition-all ${
+              playing ? "opacity-0 pointer-events-none" : "group-hover:bg-transparent"
+            }`}
+          >
             <div className="w-20 h-20 rounded-full border border-border flex items-center justify-center bg-white/80 backdrop-blur-sm group-hover:scale-110 transition-transform">
               <Play className="text-fg w-8 h-8 fill-fg" />
             </div>
@@ -46,19 +87,19 @@ export default function Showreel() {
         </motion.div>
 
         <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mt-12">
-          {thumbnails.map((thumb, i) => (
+          {thumbnails.map((thumb, index) => (
             <motion.div 
-              key={i}
+              key={thumb}
               initial={{ opacity: 0, y: 10 }}
               whileInView={{ opacity: 0.4, y: 0 }}
               whileHover={{ opacity: 1, y: -4 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.05 }}
+              transition={{ delay: index * 0.05 }}
               className="aspect-video overflow-hidden border border-border bg-surface cursor-pointer group"
             >
               <img 
                 src={thumb} 
-                alt={`Archive ${i}`} 
+                alt={`Archive ${index}`} 
                 className="w-full h-full object-cover grayscale brightness-110 transition-all duration-500 group-hover:grayscale-0 group-hover:brightness-100"
                 referrerPolicy="no-referrer"
               />
